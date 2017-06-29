@@ -86,7 +86,7 @@ class CarRecogniser(object):
         """
         if type(image) != Image.Image:
             raise TypeError('image must be PIL Image object')
-        if image.size == (64, 64):
+        if image.size != (64, 64):
             raise ValueError('image size must be 64x64 pixels')
 
         vector = []
