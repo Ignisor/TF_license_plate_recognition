@@ -91,7 +91,7 @@ class CarRecogniser(object):
 
         vector = []
         for pixel in image.getdata():
-            vector.append(tuple((color/255 for color in pixel[:3])))
+            vector.append(tuple((color/255 for color in pixel)))
 
         vector = array(vector).reshape(1, 64 * 64, 3)
 
@@ -103,10 +103,11 @@ class CarRecogniser(object):
 
     def is_car_from_url(self, image_url):
         """Check is car on image loaded from url. Used for testing purposes."""
-        file = BytesIO(urlopen(image_url).read())
+        img_file = BytesIO(urlopen(image_url).read())
 
-        image = Image.open(file)
+        image = Image.open(img_file)
         image = image.resize((64, 64))
+        image = image.convert('RGB')
 
         if self.is_car(image):
             print('It\'s NOT a car')
