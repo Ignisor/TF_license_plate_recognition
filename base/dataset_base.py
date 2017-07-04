@@ -5,20 +5,20 @@ import numpy
 
 
 class DataSetBase(metaclass=ABCMeta):
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def _get_set(amount=None, test=False):
         pass
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def get_batch(amount=None, test=False):
         """Returns 'amount' random images as vectors with answers"""
-        set = ImageSet._get_set(amount, test)
+        set = DataSetBase._get_set(amount, test)
 
-        return ImageSet.process_set(set)
+        return DataSetBase.process_set(set)
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def process_set(set):
         return set
