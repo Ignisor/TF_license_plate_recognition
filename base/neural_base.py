@@ -10,6 +10,7 @@ from tensorflow.python.framework.errors_impl import NotFoundError
 
 class NeuralModelBase(metaclass=ABCMeta):
     """Neural model base"""
+    INPUT_SIZE = [-1, 64, 64, 3]
 
     def __init__(self):
         super(NeuralModelBase, self).__init__()
@@ -29,8 +30,8 @@ class NeuralModelBase(metaclass=ABCMeta):
 
     def model(self):
         # initialise model
-        self.x = tf.placeholder(tf.float32, shape=[None, 64 * 64, 3])
-        x_image = tf.reshape(self.x, [-1, 64, 64, 3])
+        self.x = tf.placeholder(tf.float32, shape=[None, self.INPUT_SIZE[1] * self.INPUT_SIZE[2], self.INPUT_SIZE[3]])
+        x_image = tf.reshape(self.x, self.INPUT_SIZE)
 
         # First layer:
         W_conv1 = self.weight_variable([5, 5, 3, 32])
