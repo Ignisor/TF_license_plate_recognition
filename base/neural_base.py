@@ -1,3 +1,4 @@
+import inspect
 import os
 import logging
 import time
@@ -9,10 +10,11 @@ from tensorflow.python.framework.errors_impl import NotFoundError
 
 class NeuralModelBase(metaclass=ABCMeta):
     """Neural model base"""
-    BASE_DIR = os.path.dirname(__file__)
 
     def __init__(self):
         super(NeuralModelBase, self).__init__()
+
+        self.BASE_DIR = os.path.dirname(inspect.getfile(self.__class__))
 
         self.model()
 
