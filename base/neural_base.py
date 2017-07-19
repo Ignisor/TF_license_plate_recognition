@@ -2,7 +2,7 @@ import inspect
 import os
 import logging
 import time
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 
 import tensorflow as tf
 from tensorflow.python.framework.errors_impl import NotFoundError
@@ -11,6 +11,8 @@ from tensorflow.python.framework.errors_impl import NotFoundError
 class NeuralModelBase(metaclass=ABCMeta):
     """Neural model base"""
     INPUT_SIZE = [-1, 64, 64, 3]
+    ANSWERS_SIZE = 2
+    dataset_class = None
 
     def __init__(self):
         super(NeuralModelBase, self).__init__()
@@ -48,10 +50,10 @@ class NeuralModelBase(metaclass=ABCMeta):
         h_pool2 = self.max_pool_2x2(h_conv2)
 
         # Densely connected layer:
-        W_fc1 = self.weight_variable([16 * 16 * 64, 1024])
+        W_fc1 = self.weight_variable([(self.INPUT_SIZE[1] // 4) * (self.INPUT_SIZE[2] // 4) * 64, 1024])
         b_fc1 = self.bias_variable([1024])
 
-        h_pool2_flat = tf.reshape(h_pool2, [-1, 16 * 16 * 64])
+        h_pool2_flat = tf.reshape(h_pool2, [-1, (self.INPUT_SIZE[1] // 4) * (self.INPUT_SIZE[2] // 4) * 64])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
         # Dropout:
@@ -59,13 +61,13 @@ class NeuralModelBase(metaclass=ABCMeta):
         self.h_fc1_drop = tf.nn.dropout(h_fc1, self.keep_prob)
 
         # Readout layer:
-        W_fc2 = self.weight_variable([1024, 2])
-        b_fc2 = self.bias_variable([2])
+        W_fc2 = self.weight_variable([1024, self.ANSWERS_SIZE])
+        b_fc2 = self.bias_variable([self.ANSWERS_SIZE])
 
         self.y_conv = tf.matmul(self.h_fc1_drop, W_fc2) + b_fc2
 
         # correct values
-        self.y_ = tf.placeholder(tf.float32, [None, 2])
+        self.y_ = tf.placeholder(tf.float32, [None, self.ANSWERS_SIZE])
 
         return self.y_conv
 
@@ -87,12 +89,15 @@ class NeuralModelBase(metaclass=ABCMeta):
     def max_pool_2x2(x):
         return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
-    def train(self, dataset_class, steps=1000):
+    def train(self, steps=1000, dataset_class=None):
         """
         Train model
         :param dataset_class: subclass of DataSetBase class to get data from 
         :param steps: amount of training steps 
         """
+        dataset_class = dataset_class or self.dataset_class
+        dataset_class = dataset_class()
+
         cross_entropy = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits(labels=self.y_, logits=self.y_conv))
 
@@ -106,6 +111,7 @@ class NeuralModelBase(metaclass=ABCMeta):
         for i in range(steps):
             logging.info(f"Started {i+1} training")
 
+            t = time.time()
             batch = dataset_class.get_batch(amount=100)
             logging.debug(f"data got in: {time.time() - t:.2f}s")
 
@@ -125,7 +131,6 @@ class NeuralModelBase(metaclass=ABCMeta):
 
         self.saver.save(self.sess, "data/saved/model.ckpt")
 
-    @abstractmethod
     def process_data(self, data):
         """
         prepares data for neural network
@@ -134,7 +139,6 @@ class NeuralModelBase(metaclass=ABCMeta):
         """
         return data
 
-    @abstractmethod
     def process_result(self, result):
         """
         processes neural network result so we can return more convenient info
