@@ -70,6 +70,8 @@ class LPDataset(DataSetBase):
 
         img = Image.alpha_composite(img, n_plate)
 
+        del plate, n_plate
+
         return img
 
     @staticmethod
@@ -78,6 +80,8 @@ class LPDataset(DataSetBase):
         vector = []
         for pixel in img.getdata():
             vector.append((pixel[0] / 255, pixel[1] / 255, pixel[2] / 255))
+
+        del img
 
         return vector
 

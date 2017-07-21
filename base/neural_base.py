@@ -117,11 +117,13 @@ class NeuralModelBase(metaclass=ABCMeta):
 
             t = time.time()
             train_step.run(feed_dict={self.x: batch[0], self.y_: batch[1], self.keep_prob: 0.5})
+            del batch
             logging.debug(f"train step took: {time.time() - t:.2f}s")
 
             if (i + 1) % 100 == 0:
                 test_batch = dataset_class.get_batch(test=True)
                 acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0})
+                del test_batch
                 logging.info(f"----Step {i+1}, training accuracy {acc}----")
                 self.saver.save(self.sess, "data/saved/model.ckpt")
 
