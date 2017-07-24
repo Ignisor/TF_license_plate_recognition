@@ -97,6 +97,7 @@ ENV/
 
 # Saved weights
 car_recognition/data/saved
+car_recognition/data/test
 
 # IntelliJ
 .idea/
