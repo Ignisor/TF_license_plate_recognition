@@ -19,15 +19,17 @@ class NeuralModelBase(metaclass=ABCMeta):
 
         self.BASE_DIR = os.path.dirname(inspect.getfile(self.__class__))
 
+        self.savepath = os.path.join(self.BASE_DIR, "data/saved/model.ckpt")
+
         self.model()
 
         self.sess = tf.InteractiveSession()
         self.saver = tf.train.Saver()
 
         try:
-            self.saver.restore(self.sess, os.path.join(self.BASE_DIR, "data/saved/model.ckpt"))
+            self.saver.restore(self.sess, self.savepath)
         except NotFoundError:
-            logging.warning("No file to load model. Place model to 'data/saved/model.ckpt'")
+            logging.warning(f"No file to load model. Place model to {self.savepath}")
             tf.global_variables_initializer().run()
 
     def model(self):
@@ -125,13 +127,13 @@ class NeuralModelBase(metaclass=ABCMeta):
                 acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0})
                 del test_batch
                 logging.info(f"----Step {i+1}, training accuracy {acc}----")
-                self.saver.save(self.sess, "data/saved/model.ckpt")
+                self.saver.save(self.sess, self.savepath)
 
         test_batch = dataset_class.get_batch(test=True)
         test_acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0})
         logging.info(f"Test accuracy {test_acc}")
 
-        self.saver.save(self.sess, "data/saved/model.ckpt")
+        self.saver.save(self.sess, self.savepath)
 
     def process_data(self, data):
         """
