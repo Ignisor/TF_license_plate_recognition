@@ -22,7 +22,7 @@ class LPDataset(DataSetBase):
         for i in range(amount):
             gen, label = random.choice(generators)
             img = gen()
-            img = LPDataset._process_image(img)
+            img = self._process_image(img)
 
             imgs.append(img)
             labels.append(label)
@@ -114,8 +114,7 @@ class LPDataset(DataSetBase):
 
         return img
 
-    @staticmethod
-    def _process_image(img):
+    def _process_image(self, img):
         # convert to vector
         vector = []
         for pixel in img.getdata():
