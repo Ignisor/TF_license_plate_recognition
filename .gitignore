@@ -96,8 +96,8 @@ ENV/
 .ropeproject
 
 # Saved weights
-car_recognition/data/saved
-car_recognition/data/test
+*/data/saved/*
+*/data/test/*
 
 # IntelliJ
 .idea/
