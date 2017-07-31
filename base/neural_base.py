@@ -3,9 +3,13 @@ import os
 import logging
 import time
 from abc import ABCMeta
+from io import BytesIO
+from urllib.request import urlopen
 
 import tensorflow as tf
 from tensorflow.python.framework.errors_impl import NotFoundError
+from PIL import Image
+
 
 
 class NeuralModelBase(metaclass=ABCMeta):
@@ -138,10 +142,21 @@ class NeuralModelBase(metaclass=ABCMeta):
     def process_data(self, data):
         """
         prepares data for neural network
-        :param data: data to process
-        :return: processed data 
+        :param data: instance of PIL.Image.Image or str with url to image
+        :return: matrix made from image 
         """
-        return data
+        if type(data) != Image.Image:
+            file = BytesIO(urlopen(data).read())
+            data = Image.open(file)
+
+        image = data.resize(self.INPUT_SIZE[1:3], Image.LANCZOS)
+
+        # convert to vector
+        matrix = []
+        for pixel in image.getdata():
+            matrix.append((pixel[0] / 255, pixel[1] / 255, pixel[2] / 255))
+
+        return [matrix, ]
 
     def process_result(self, result):
         """

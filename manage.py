@@ -15,6 +15,13 @@ class Command(metaclass=ABCMeta):
         """abstract method that called when command executes"""
         pass
 
+    @staticmethod
+    def get_arg(index, err_message, *args):
+        try:
+            return args[index]
+        except IndexError:
+            raise AttributeError(err_message)
+
 
 class Help(Command):
     names = ['help', '?', 'h']
@@ -34,13 +41,34 @@ class Train(Command):
         log = logging.getLogger()
         log.setLevel(logging.DEBUG)
 
-        model_name = args[0]
+        model_name = Command.get_arg(0, 'You must specify model name as first positional argument', *args)
         iterations = int(args[1]) if len(args) > 1 else 1000
 
         model_class = self.import_(model_name)
         model = model_class()
 
         model.train(iterations)
+
+    def import_(self, name):
+        components = name.split('.')
+        mod = __import__(components[0])
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
+
+
+class RunUrl(Command):
+    names = ['run_url', ]
+    description = 'Run neural network. Usage "run_url [model_name] [url]".'
+
+    def handle(self, *args):
+        model_name = Command.get_arg(0, 'You must specify model name as first positional argument', *args)
+        url = Command.get_arg(1, 'You must specify url as second positional argument', *args)
+
+        model_class = self.import_(model_name)
+        model = model_class()
+
+        print(model.run(url))
 
     def import_(self, name):
         components = name.split('.')
