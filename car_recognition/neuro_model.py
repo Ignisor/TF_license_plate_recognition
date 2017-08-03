@@ -37,4 +37,4 @@ class CarRecogniser(NeuralModelBase):
         """Check is car on image loaded from url. Used for testing purposes."""
         img_file = BytesIO(urlopen(image_url).read())
 
-        return self.run(img_file)
+        return self.run_single(img_file)

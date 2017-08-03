@@ -5,6 +5,7 @@ import time
 from abc import ABCMeta
 from io import BytesIO
 from urllib.request import urlopen
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.python.framework.errors_impl import NotFoundError
@@ -34,7 +35,7 @@ class NeuralModelBase(metaclass=ABCMeta):
             self.saver.restore(self.sess, self.savepath)
         except NotFoundError:
             logging.warning(f"No file to load model. Place model to {self.savepath}")
-            tf.global_variables_initializer().run()
+            tf.global_variables_initializer().run_single()
 
     def model(self):
         # initialise model
@@ -122,7 +123,7 @@ class NeuralModelBase(metaclass=ABCMeta):
             logging.debug(f"data got in: {time.time() - t:.2f}s")
 
             t = time.time()
-            train_step.run(feed_dict={self.x: batch[0], self.y_: batch[1], self.keep_prob: 0.5})
+            train_step.run_single(feed_dict={self.x: batch[0], self.y_: batch[1], self.keep_prob: 0.5})
             del batch
             logging.debug(f"train step took: {time.time() - t:.2f}s")
 
@@ -142,42 +143,67 @@ class NeuralModelBase(metaclass=ABCMeta):
     def process_data(self, data):
         """
         prepares data for neural network
-        :param data: instance of PIL.Image.Image or str with url to image
+        :param data: list of instances of PIL.Image.Image or str with url to image or numpy array
         :return: matrix made from image 
         """
-        if type(data) != Image.Image:
+        if type(data) == str:
             file = BytesIO(urlopen(data).read())
             data = Image.open(file)
 
-        image = data.resize(self.INPUT_SIZE[1:3], Image.LANCZOS)
+        if type(data) == Image.Image:
+            image = data.resize(self.INPUT_SIZE[1:3])
 
-        # convert to vector
-        matrix = []
-        for pixel in image.getdata():
-            matrix.append((pixel[0] / 255, pixel[1] / 255, pixel[2] / 255))
+            data = np.array(image)
 
-        return [matrix, ]
+        data = np.reshape(data, (self.INPUT_SIZE[1] * self.INPUT_SIZE[2], self.INPUT_SIZE[3]))
 
-    def process_result(self, result):
+        return data
+
+    def process_batch(self, batch):
+        result_batch = []
+        for data in batch:
+            result_batch.append(self.process_data(data))
+
+        return result_batch
+
+    def process_results(self, results):
         """
         processes neural network result so we can return more convenient info
         :param result: result to process
         :return: processed data
         """
-        return result
+        return results
 
-    def run(self, data):
+    def run_single(self, data):
         """
         Runs neural network for given data and returns processed answer
         :param data: data for neural network
         :return: processed neural network result
         """
-        data = self.process_data(data)
+        batch = [data, ]
 
-        softmax = tf.nn.softmax(logits=self.y_conv)
+        return self.run_batch(batch)
 
-        result = self.sess.run(softmax, feed_dict={self.x: data, self.keep_prob: 1.0})
+    def run_batch(self, batch, max_size=500):
+        """
+        Runs neural network for given batch of data and returns processed answers
+        :param batch: batch of data for neural network
+        :param max_size: max size of batch, if batch is bigger it will be splited
+        :return: processed results
+        """
+        batch = self.process_batch(batch)
+        length = len(batch)
 
-        return self.process_result(result)
+        t = time.time()
+        i = 0
+        results = []
+        step = max(length, max_size)
+        for i in range(0, length, step):
+            part = batch[i:i + step]
 
+            softmax = tf.nn.softmax(logits=self.y_conv)
+            results.extend(self.sess.run(softmax, feed_dict={self.x: part, self.keep_prob: 1.0}))
 
+        logging.debug(f"on size {len(batch)} NN ran in: {time.time() - t:4f}s")
+
+        return self.process_results(results)

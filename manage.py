@@ -68,7 +68,7 @@ class RunUrl(Command):
         model_class = self.import_(model_name)
         model = model_class()
 
-        print(model.run(url))
+        print(model.run_single(url))
 
     def import_(self, name):
         components = name.split('.')
@@ -76,6 +76,28 @@ class RunUrl(Command):
         for comp in components[1:]:
             mod = getattr(mod, comp)
         return mod
+
+
+class TempCmd(Command):
+    names = ['tmp', ]
+    description = 'Temporary command used to run some code. Like shell.'
+
+    def handle(self, *args):
+        import logging
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
+        from PIL import Image
+        img = Image.open('/home/ignisor/Downloads/Telegram Desktop/cars.jpg')
+        from lp_finder import LPRecogniser
+
+        from base import VideoProcessor
+        vp = VideoProcessor('', LPRecogniser, 4 / 1)
+
+        import time
+        t = time.time()
+        result = vp.process_frame(img)
+        logging.debug(f"frame processed in: {time.time() - t:.4f}s")
 
 
 def all_subclasses(cls):
