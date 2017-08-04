@@ -28,7 +28,7 @@ class NeuralModelBase(metaclass=ABCMeta):
 
         self.model()
 
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.Session()
         self.saver = tf.train.Saver()
 
         try:
@@ -75,6 +75,8 @@ class NeuralModelBase(metaclass=ABCMeta):
 
         # correct values
         self.y_ = tf.placeholder(tf.float32, [None, self.ANSWERS_SIZE])
+
+        self.softmax = tf.nn.softmax(logits=self.y_conv)
 
         return self.y_conv
 
@@ -195,14 +197,17 @@ class NeuralModelBase(metaclass=ABCMeta):
         length = len(batch)
 
         t = time.time()
-        i = 0
-        results = []
-        step = max(length, max_size)
+        results = None
+        step = min(length, max_size)
         for i in range(0, length, step):
-            part = batch[i:i + step]
+            chunk = batch[i:i + step]
 
-            softmax = tf.nn.softmax(logits=self.y_conv)
-            results.extend(self.sess.run(softmax, feed_dict={self.x: part, self.keep_prob: 1.0}))
+            res = self.sess.run(self.softmax, feed_dict={self.x: chunk, self.keep_prob: 1.0})
+
+            if results:
+                results.extend(res)
+            else:
+                results = list(res)
 
         logging.debug(f"on size {len(batch)} NN ran in: {time.time() - t:4f}s")
 
