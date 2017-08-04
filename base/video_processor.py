@@ -27,6 +27,8 @@ class VideoProcessor(metaclass=ABCMeta):
                 yield start
                 start = int(start * step)
 
+        self.find_lp(frame)
+
         if not part_ratio:
             part_ratio = self.part_ratio
 
@@ -62,3 +64,49 @@ class VideoProcessor(metaclass=ABCMeta):
                     if cv2.waitKey(25) & 0xFF == ord('q'):
                         cv2.destroyAllWindows()
                         break
+
+    def find_lp(self, frame):
+        frame = np.array(frame)
+        grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        kernel = np.ones((3, 9), np.uint8)
+
+        img = grey_frame
+        # img = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, kernel)
+        img = cv2.dilate(img, kernel, iterations=3)
+        img = cv2.erode(img, kernel, iterations=2)
+        img = cv2.subtract(img, grey_frame)
+
+        for _ in range(3):
+            img = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
+
+        img = cv2.GaussianBlur(img, (5, 5), 0)
+
+        img = cv2.dilate(img, kernel, iterations=1)
+        img = cv2.erode(img, kernel, iterations=2)
+
+        _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        image, contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        rects = []
+        for contour in contours:
+            rect = cv2.minAreaRect(contour)
+            area = abs(cv2.contourArea(contour))
+            bb_area = rect[1][0] * rect[1][1]
+            ratio = area/bb_area if area and bb_area else 0.0
+
+            if ratio >= 0.45 and bb_area >= 400:
+                rects.append(rect)
+
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        for rect in rects:
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+            img = cv2.drawContours(img, [box], 0, (0, 0, 255), 5)
+
+        cv2.imshow('img', cv2.resize(img, tuple(sh//4 for sh in img.shape[:2])))
+
+        while True:
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                cv2.destroyAllWindows()
+                break
