@@ -33,9 +33,9 @@ class LPDataset(DataSetBase):
     def generate_lp(text=None):
         """generate random license plate"""
         if not text:
-            rand_letter = lambda count: ''.join(random.choice('QWERTYUIOPASDFGHJKLZXCVBNM') for _ in range(count))
+            rand_letter = lambda count: ''.join(random.choice('QWERTYUOPASDFGHIJKLZXCVBNM') for _ in range(count))
             rand_num = lambda count: ''.join(str(random.randint(0, 9)) for _ in range(count))
-            text = f'{rand_letter(2)} {rand_num(4)} {rand_letter(2)}'
+            text = f'{rand_letter(2)} {rand_num(4)}{rand_letter(1)}'
 
         img = Image.new('RGBA', (256, 64))
 
@@ -43,12 +43,12 @@ class LPDataset(DataSetBase):
         LPDataset.generate_noise(img)
 
         # generate plate
-        plate = Image.new('RGB', (140, 30), LPDataset.get_random_color(235, 255))
+        plate = Image.new('RGB', (113, 30), LPDataset.get_random_color(235, 255))
         draw = ImageDraw.Draw(plate)
 
-        # draw random flag
-        draw.rectangle([(0, 0), (plate.width * 0.1, plate.height / 2)], fill=LPDataset.get_random_color())
-        draw.rectangle([(0, plate.height / 2), (plate.width * 0.1, plate.height)], fill=LPDataset.get_random_color())
+        # draw EU flag
+        draw.rectangle([(0, 0), (plate.width * 0.15, plate.height)], fill=(50, 50, random.randint(200, 255)))
+        # draw.rectangle([(0, plate.height / 2), (plate.width * 0.1, plate.height)], fill=LPDataset.get_random_color())
 
         # draw border
         for i in range(2):
@@ -57,8 +57,8 @@ class LPDataset(DataSetBase):
             draw.rectangle(xy, outline=(0, 0, 0))
 
         # draw text
-        text_xy = (plate.width * 0.15, plate.height * 0.15)
-        text_font = ImageFont.truetype("arial.ttf", 20)
+        text_xy = (plate.width * 0.18, plate.height * 0.05)
+        text_font = ImageFont.truetype("lp_finder/data/din1451alt.ttf", 23)
         draw.text(text_xy, text, fill=LPDataset.get_random_color(0, 25), font=text_font)
 
         # rotate and stretch plate
