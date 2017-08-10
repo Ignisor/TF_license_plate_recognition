@@ -35,7 +35,7 @@ class NeuralModelBase(metaclass=ABCMeta):
             self.saver.restore(self.sess, self.savepath)
         except NotFoundError:
             logging.warning(f"No file to load model. Place model to {self.savepath}")
-            tf.global_variables_initializer().run_single()
+            self.sess.run(tf.global_variables_initializer())
 
     def model(self):
         # initialise model
@@ -125,7 +125,7 @@ class NeuralModelBase(metaclass=ABCMeta):
             logging.debug(f"data got in: {time.time() - t:.2f}s")
 
             t = time.time()
-            train_step.run_single(feed_dict={self.x: batch[0], self.y_: batch[1], self.keep_prob: 0.5})
+            train_step.run(feed_dict={self.x: batch[0], self.y_: batch[1], self.keep_prob: 0.5}, session=self.sess)
             del batch
             logging.debug(f"train step took: {time.time() - t:.2f}s")
 
