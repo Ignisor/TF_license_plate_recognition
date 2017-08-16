@@ -1,11 +1,40 @@
 import random
-import time
+import logging
 from io import BytesIO
 from urllib.request import urlopen
 
 from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+import cv2
 
 from base import DataSetBase
+from .data_parser import MongoLicensePlates
+
+
+class MongoLPDataset(DataSetBase):
+    def _get_set(self, amount=None, test=False):
+        mlp = MongoLicensePlates()
+        all_objects = mlp.get_test() if test else mlp.get_train()
+
+        amount = min(amount, all_objects.count())
+
+        imgs = []
+        labels = []
+        for obj in all_objects:
+            if amount <= 0:
+                break
+            amount -= 1
+
+            img_b = mlp.get_image(obj['file_id'])
+            np_arr = np.fromstring(img_b, np.uint8)
+            img_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            img_np = cv2.resize(img_np, (256, 64), interpolation=cv2.INTER_CUBIC)
+            img_np = img_np.reshape((256 * 64, 3))
+
+            imgs.append(img_np)
+            labels.append([int(obj['is_lp']), int(not obj['is_lp'])])
+
+        return imgs, labels
 
 
 class LPDataset(DataSetBase):
@@ -76,13 +105,17 @@ class LPDataset(DataSetBase):
     def generate_wrong_img():
         """Generates random non LP image"""
         generators = (
-            (LPDataset.generate_lp, ' ', ),  # Generate LP without text
+            # (LPDataset.generate_lp, ' ', ),  # Generate LP without text
             (LPDataset.get_rand_img, (256, 64), ),
             (LPDataset.generate_noise, Image.new('RGBA', (256, 64)), ),
         )
 
-        gen = random.choice(generators)
-        return gen[0](*gen[1:])
+        while True:
+            try:
+                gen = random.choice(generators)
+                return gen[0](*gen[1:])
+            except Exception as e:
+                logging.error(e)
 
     @staticmethod
     def get_rand_img(size):

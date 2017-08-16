@@ -14,13 +14,14 @@ class VideoProcessor(metaclass=ABCMeta):
         self.nn = nn_class()
         self.part_ratio = part_ratio
 
-    def process_video(self, video_file, frameskip=5):
+    def process_video(self, video_file, frameskip=3):
         """
         Split video in to frames
         :param str video_file: path to video 
         :param int frameskip: how many frames to skip
         """
         video = cv2.VideoCapture(video_file)
+
         c = 0
         while video.isOpened():
             ret, frame = video.read()
@@ -31,6 +32,15 @@ class VideoProcessor(metaclass=ABCMeta):
 
             c += 1
             if c >= frameskip:
+                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                #
+                # cars = car_cascade.detectMultiScale(gray, 1.1, 1)
+                #
+                # d_frame = np.empty_like(frame)
+                # d_frame[:] = frame
+                #
+                # for (x, y, w, h) in cars:
+                #     cv2.rectangle(d_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 plates = self.process_frame(frame)
                 c = 0
 

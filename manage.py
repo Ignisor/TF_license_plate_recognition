@@ -83,21 +83,25 @@ class TempCmd(Command):
     description = 'Temporary command used to run some code. Like shell.'
 
     def handle(self, *args):
-        import logging
-        logger = logging.getLogger()
-        logger.setLevel(logging.DEBUG)
+        # import logging
+        # logger = logging.getLogger()
+        # logger.setLevel(logging.DEBUG)
+        #
+        # # from PIL import Image
+        # # img = Image.open('/home/ignisor/Downloads/Telegram Desktop/cars.jpg')
+        #
+        # from lp_finder import LPRecogniser
+        # from base import VideoProcessor
+        # vp = VideoProcessor('', LPRecogniser, 4 / 1)
+        #
+        # import time
+        # t = time.time()
+        # result = vp.process_video('/home/ignisor/Downloads/pl111.avi')
+        # logging.debug(f"video processed in: {time.time() - t:.4f}s")
 
-        # from PIL import Image
-        # img = Image.open('/home/ignisor/Downloads/Telegram Desktop/cars.jpg')
-
-        from lp_finder import LPRecogniser
-        from base import VideoProcessor
-        vp = VideoProcessor('', LPRecogniser, 4 / 1)
-
-        import time
-        t = time.time()
-        result = vp.process_video('/home/ignisor/Downloads/pl111.avi')
-        logging.debug(f"video processed in: {time.time() - t:.4f}s")
+        from lp_finder.data_parser import VideoCutter
+        cutter = VideoCutter()
+        cutter.process_video('/home/ignisor/Downloads/pl111.avi', 5)
 
 
 def all_subclasses(cls):

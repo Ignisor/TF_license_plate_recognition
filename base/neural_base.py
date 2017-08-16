@@ -131,7 +131,8 @@ class NeuralModelBase(metaclass=ABCMeta):
 
             if (i + 1) % 100 == 0:
                 test_batch = dataset_class.get_batch(test=True)
-                acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0})
+                acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0},
+                                    session=self.sess)
                 del test_batch
                 logging.info(f"----Step {i+1}, training accuracy {acc}----")
                 self.saver.save(self.sess, self.savepath)
