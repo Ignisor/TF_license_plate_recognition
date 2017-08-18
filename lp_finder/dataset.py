@@ -16,7 +16,7 @@ class MongoLPDataset(DataSetBase):
         mlp = MongoLicensePlates()
         all_objects = mlp.get_test() if test else mlp.get_train()
 
-        amount = min(amount, all_objects.count())
+        amount = min(amount, all_objects.count()) if amount else all_objects.count()
 
         imgs = []
         labels = []
