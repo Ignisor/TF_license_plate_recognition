@@ -138,7 +138,8 @@ class NeuralModelBase(metaclass=ABCMeta):
                 self.saver.save(self.sess, self.savepath)
 
         test_batch = dataset_class.get_batch(test=True)
-        test_acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0})
+        test_acc = accuracy.eval(feed_dict={self.x: test_batch[0], self.y_: test_batch[1], self.keep_prob: 1.0},
+                                 session=self.sess)
         logging.info(f"Test accuracy {test_acc}")
 
         self.saver.save(self.sess, self.savepath)
