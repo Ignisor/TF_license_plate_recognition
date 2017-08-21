@@ -87,9 +87,6 @@ class TempCmd(Command):
         # logger = logging.getLogger()
         # logger.setLevel(logging.DEBUG)
         #
-        # # from PIL import Image
-        # # img = Image.open('/home/ignisor/Downloads/Telegram Desktop/cars.jpg')
-        #
         # from lp_finder import LPRecogniser
         # from base import VideoProcessor
         # vp = VideoProcessor('', LPRecogniser, 4 / 1)
@@ -99,9 +96,13 @@ class TempCmd(Command):
         # result = vp.process_video('/home/ignisor/Downloads/pl111.avi')
         # logging.debug(f"video processed in: {time.time() - t:.4f}s")
 
-        from lp_finder.data_parser import VideoCutter
-        cutter = VideoCutter()
-        cutter.process_video('/home/ignisor/Downloads/pl111.avi', 5)
+        import cv2
+        img = cv2.imread('/home/ignisor/dev/tf_lpr/tf_lpr/lp_chars_recognition/test_lp.jpg')
+
+        from lp_chars_recognition import LPProcessor
+        lp_proc = LPProcessor()
+        # lp = lp_proc.crop(img)
+        chars = lp_proc.split(img)
 
 
 def all_subclasses(cls):

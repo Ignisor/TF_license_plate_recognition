@@ -43,7 +43,7 @@ class NeuralModelBase(metaclass=ABCMeta):
         x_image = tf.reshape(self.x, self.INPUT_SIZE)
 
         # First layer:
-        W_conv1 = self.weight_variable([5, 5, 3, 32])
+        W_conv1 = self.weight_variable([5, 5, self.INPUT_SIZE[3], 32])
         b_conv1 = self.bias_variable([32])
 
         h_conv1 = tf.nn.relu(self.conv2d(x_image, W_conv1) + b_conv1)

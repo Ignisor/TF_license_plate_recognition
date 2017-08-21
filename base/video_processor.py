@@ -6,6 +6,8 @@ from PIL import Image, ImageDraw
 import numpy as np
 import cv2
 
+from lp_chars_recognition import LPProcessor
+
 
 class VideoProcessor(metaclass=ABCMeta):
     SEARCH_RECTANGLE = ((400, 500), (1000, 700))
@@ -13,6 +15,7 @@ class VideoProcessor(metaclass=ABCMeta):
     def __init__(self, video_path, nn_class, part_ratio):
         self.nn = nn_class()
         self.part_ratio = part_ratio
+        self.lp_proc = LPProcessor()
 
     def process_video(self, video_file, frameskip=3):
         """
@@ -45,10 +48,13 @@ class VideoProcessor(metaclass=ABCMeta):
                 c = 0
 
                 for plate in plates:
-                    cv2.imshow('plate', plate)
-                    while True:
-                        if cv2.waitKey(1) & 0xFF == ord('n'):
-                            break
+                    plate = self.lp_proc.crop(plate)
+
+                    if len(plate) > 0:
+                        cv2.imshow('plate', plate)
+                        while True:
+                            if cv2.waitKey(1) & 0xFF == ord('n'):
+                                break
 
                 cv2.imshow('frame', d_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -79,6 +85,7 @@ class VideoProcessor(metaclass=ABCMeta):
         img_center = (img_width // 2, img_height // 2)
 
         parts_batch = []
+        unresized_parts = []
         t = time.time()
         for height in mul_range(32, img_height, 1 + step):
             width = int(height * part_ratio)
@@ -89,6 +96,7 @@ class VideoProcessor(metaclass=ABCMeta):
             )
 
             part = img[part_rect[0][1]:part_rect[1][1], part_rect[0][0]:part_rect[1][0]]
+            unresized_parts.append(part)
             part = cv2.resize(part, tuple(self.nn.INPUT_SIZE[1:3]))
 
             parts_batch.append(part)
@@ -97,6 +105,6 @@ class VideoProcessor(metaclass=ABCMeta):
 
         results = self.nn.run_batch(parts_batch)
 
-        for result, rect in zip(results, parts_batch):
+        for result, rect in zip(results, unresized_parts):
             if result:
                 yield rect
