@@ -83,26 +83,26 @@ class TempCmd(Command):
     description = 'Temporary command used to run some code. Like shell.'
 
     def handle(self, *args):
-        # import logging
-        # logger = logging.getLogger()
-        # logger.setLevel(logging.DEBUG)
-        #
-        # from lp_finder import LPRecogniser
-        # from base import VideoProcessor
-        # vp = VideoProcessor('', LPRecogniser, 4 / 1)
-        #
-        # import time
-        # t = time.time()
-        # result = vp.process_video('/home/ignisor/Downloads/pl111.avi')
-        # logging.debug(f"video processed in: {time.time() - t:.4f}s")
+        import logging
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
 
-        import cv2
-        img = cv2.imread('/home/ignisor/dev/tf_lpr/tf_lpr/lp_chars_recognition/test_lp.jpg')
+        from lp_finder import LPRecogniser
+        from base import VideoProcessor
+        vp = VideoProcessor('', LPRecogniser, 4 / 1)
 
-        from lp_chars_recognition import LPProcessor
-        lp_proc = LPProcessor()
-        # lp = lp_proc.crop(img)
-        chars = lp_proc.split(img)
+        import time
+        t = time.time()
+        result = vp.process_video('/home/ignisor/Downloads/pl111.avi')
+        logging.debug(f"video processed in: {time.time() - t:.4f}s")
+
+        # import cv2
+        # img = cv2.imread('/home/ignisor/dev/tf_lpr/tf_lpr/lp_chars_recognition/test_lp.jpg')
+        #
+        # from lp_chars_recognition import LPProcessor
+        # lp_proc = LPProcessor()
+        # # lp = lp_proc.crop(img)
+        # chars = lp_proc.split(img)
 
 
 def all_subclasses(cls):

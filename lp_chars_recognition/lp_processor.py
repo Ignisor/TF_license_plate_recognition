@@ -38,17 +38,56 @@ class LPProcessor(object):
         if w > 0 and h > 0:
             cropped = big_img[y:y + h, x:x + w]
 
-        return cropped
+        return cropped if len(cropped) > 0 else None
 
     def split(self, lp):
         img = cv2.cvtColor(lp, cv2.COLOR_BGR2GRAY)
         img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 10)
+        img = 255 - img
 
         proj_x = np.sum(img, axis=0)
         proj_x = proj_x / max(proj_x)
 
-        print(proj_x)
-        self.dbg_img_show(img)
+        # normalize
+        proj_x_norm = []
+        for i in range(0, len(proj_x), 5):
+            part = proj_x[i:i+5]
+            avg = sum(part)/5
+            for _ in part:
+                proj_x_norm.append(avg)
+
+        proj_x = np.array(proj_x_norm)
+
+        avg = sum(proj_x)/len(proj_x)
+        avg = avg/2
+
+        parts = []
+        part = [0, 0]
+        sum_size = 0
+        for x, value in enumerate(proj_x):
+            if value > avg and not part[0]:
+                part[0] = x
+            elif value < avg and part[0]:
+                part[1] = x
+                parts.append(part)
+                sum_size += part[1] - part[0]
+                part = [0, 0]
+
+        if len(parts) <= 0:
+            return []
+
+        avg_size = sum_size/len(parts)
+
+        letters = []
+        for part in parts:
+            if part[1] - part[0] > avg_size/10:
+                letter_img = img[:, part[0]:part[1]]
+                h, w = letter_img.shape
+                # check image ratio filter images with wrong ratio
+                if 1.0 <= h/w <= 4.0:
+                    letters.append(letter_img)
+
+        return letters
 
 
     def dbg_img_show(self, img):

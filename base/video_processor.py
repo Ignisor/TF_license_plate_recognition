@@ -49,12 +49,16 @@ class VideoProcessor(metaclass=ABCMeta):
 
                 for plate in plates:
                     plate = self.lp_proc.crop(plate)
+                    chars = None
+                    if plate is not None:
+                        chars = self.lp_proc.split(plate)
 
-                    if len(plate) > 0:
-                        cv2.imshow('plate', plate)
-                        while True:
-                            if cv2.waitKey(1) & 0xFF == ord('n'):
-                                break
+                    if chars and len(chars) > 5:
+                        for char in chars:
+                            cv2.imshow('char', char)
+                            while True:
+                                if cv2.waitKey(1) & 0xFF == ord('n'):
+                                    break
 
                 cv2.imshow('frame', d_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -106,5 +110,5 @@ class VideoProcessor(metaclass=ABCMeta):
         results = self.nn.run_batch(parts_batch)
 
         for result, rect in zip(results, unresized_parts):
-            if result:
+            if result and len(rect) > 0:
                 yield rect
