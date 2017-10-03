@@ -1,6 +1,7 @@
 import tensorflow as tf
+import numpy as np
 
-from base import NeuralModelBase
+from base.neural_base import NeuralModelBase
 from .dataset import CharsDataset
 
 class CharRecogniser(NeuralModelBase):
@@ -51,3 +52,11 @@ class CharRecogniser(NeuralModelBase):
         self.softmax = tf.nn.softmax(logits=self.y_conv)
 
         return self.y_conv
+
+    def convert_to_text(self, results):
+        string = ''
+        for r in results:
+            index = np.where(r == max(r))[0][0]
+            string += self.CHARS[index]
+
+        return string

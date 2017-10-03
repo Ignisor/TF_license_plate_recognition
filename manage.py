@@ -87,9 +87,8 @@ class TempCmd(Command):
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
 
-        from lp_finder import LPRecogniser
-        from base import VideoProcessor
-        vp = VideoProcessor('', LPRecogniser, 4 / 1)
+        from base.video_processor import VideoProcessor
+        vp = VideoProcessor('', 4 / 1)
 
         import time
         t = time.time()

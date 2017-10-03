@@ -1,5 +1,5 @@
-from base import NeuralModelBase
-from .dataset import LPDataset, MongoLPDataset
+from base.neural_base import NeuralModelBase
+from .dataset import MongoLPDataset
 
 
 class LPRecogniser(NeuralModelBase):

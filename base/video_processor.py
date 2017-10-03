@@ -6,16 +6,18 @@ from PIL import Image, ImageDraw
 import numpy as np
 import cv2
 
-from lp_chars_recognition import LPProcessor
+from lp_finder import LPRecogniser
+import lp_chars_recognition
 
 
 class VideoProcessor(metaclass=ABCMeta):
     SEARCH_RECTANGLE = ((400, 500), (1000, 700))
 
-    def __init__(self, video_path, nn_class, part_ratio):
-        self.nn = nn_class()
+    def __init__(self, video_path, part_ratio):
+        self.lp_finder = LPRecogniser()
         self.part_ratio = part_ratio
-        self.lp_proc = LPProcessor()
+        self.lp_proc = lp_chars_recognition.LPProcessor()
+        self.char_recogniser = lp_chars_recognition.CharRecogniser()
 
     def process_video(self, video_file, frameskip=3):
         """
@@ -35,15 +37,6 @@ class VideoProcessor(metaclass=ABCMeta):
 
             c += 1
             if c >= frameskip:
-                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                #
-                # cars = car_cascade.detectMultiScale(gray, 1.1, 1)
-                #
-                # d_frame = np.empty_like(frame)
-                # d_frame[:] = frame
-                #
-                # for (x, y, w, h) in cars:
-                #     cv2.rectangle(d_frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
                 plates = self.process_frame(frame)
                 c = 0
 
@@ -54,11 +47,19 @@ class VideoProcessor(metaclass=ABCMeta):
                         chars = self.lp_proc.split(plate)
 
                     if chars and len(chars) > 5:
+                        chars_batch = []
                         for char in chars:
-                            cv2.imshow('char', char)
-                            while True:
-                                if cv2.waitKey(1) & 0xFF == ord('n'):
-                                    break
+                            char = cv2.resize(char, tuple(self.char_recogniser.INPUT_SIZE[1:3]))
+                            chars_batch.append(char)
+                        results = self.char_recogniser.run_batch(chars_batch)
+                        plate_text = self.char_recogniser.convert_to_text(results)
+                        print(plate_text)
+
+                        cv2.imshow('plate', plate)
+                        while True:
+                            if cv2.waitKey(1) & 0xFF == ord('n'):
+                                break
+
 
                 cv2.imshow('frame', d_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -101,13 +102,13 @@ class VideoProcessor(metaclass=ABCMeta):
 
             part = img[part_rect[0][1]:part_rect[1][1], part_rect[0][0]:part_rect[1][0]]
             unresized_parts.append(part)
-            part = cv2.resize(part, tuple(self.nn.INPUT_SIZE[1:3]))
+            part = cv2.resize(part, tuple(self.lp_finder.INPUT_SIZE[1:3]))
 
             parts_batch.append(part)
 
         logging.debug(f"parts batch got in: {time.time() - t:.4f}s")
 
-        results = self.nn.run_batch(parts_batch)
+        results = self.lp_finder.run_batch(parts_batch)
 
         for result, rect in zip(results, unresized_parts):
             if result and len(rect) > 0:

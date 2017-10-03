@@ -6,7 +6,6 @@ from abc import ABCMeta
 from io import BytesIO
 from urllib.request import urlopen
 import numpy as np
-
 import tensorflow as tf
 from tensorflow.python.framework.errors_impl import NotFoundError
 from PIL import Image

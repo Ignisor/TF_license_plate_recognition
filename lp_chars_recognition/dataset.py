@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import cv2
 
-from base import DataSetBase
+from base.dataset_base import DataSetBase
 
 
 class CharsDataset(DataSetBase):
